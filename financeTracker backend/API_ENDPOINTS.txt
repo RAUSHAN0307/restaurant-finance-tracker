@@ -1,0 +1,39 @@
+====================================================
+  Finance Tracker - All Available API Endpoints
+  Base URL: http://localhost:3000
+====================================================
+
+Note: All endpoints require {userId} to ensure multi-tenant data isolation.
+
+--- INVENTORY APIs (/inventory) ---
+
+1. POST   /inventory/{userId}/add                  - Add inventory item (JSON body)
+2. PUT    /inventory/{userId}/update/{inventoryId} - Update inventory item (JSON body)
+3. DELETE /inventory/{userId}/delete/{inventoryId} - Delete inventory item
+4. GET    /inventory/{userId}/get/{inventoryId}    - Get inventory by ID
+5. GET    /inventory/{userId}/all                  - Get all inventory
+6. GET    /inventory/{userId}/vendor/{vendorId}    - Get inventory by vendor
+
+
+--- VENDOR APIs (/vendors) ---
+
+7.  POST   /vendors/{userId}/add                   - Add vendor (JSON body)
+8.  PUT    /vendors/{userId}/update/{vendorId}     - Update vendor (JSON body)
+9.  DELETE /vendors/{userId}/delete/{vendorId}     - Delete vendor
+10. GET    /vendors/{userId}/get/{vendorId}        - Get vendor by ID
+11. GET    /vendors/{userId}/all                   - Get all vendors
+12. GET    /vendors/{userId}/names                 - Get vendor ID and Names only
+
+
+--- MESSAGE APIs (/messages) ---
+
+13. POST   /messages/{userId}/generate             - Generate notification messages
+14. GET    /messages/{userId}/all                  - Get all messages
+15. GET    /messages/{userId}/unread               - Get unread messages
+16. GET    /messages/{userId}/type/{type}          - Get messages by type (PENDING_PAYMENT / LOW_STOCK)
+17. PUT    /messages/{userId}/read/{messageId}     - Mark a message as read
+18. PUT    /messages/{userId}/read-all             - Mark all messages as read
+
+====================================================
+  Total Endpoints: 18
+====================================================

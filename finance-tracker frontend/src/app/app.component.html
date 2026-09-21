@@ -1,0 +1,9 @@
+<div class="app-shell" [class.with-sidebar]="showSidebar">
+  <!-- Sidebar only renders on non-login pages -->
+  <app-sidebar *ngIf="showSidebar"></app-sidebar>
+
+  <!-- All page components render here -->
+  <div class="page-content">
+    <router-outlet></router-outlet>
+  </div>
+</div>

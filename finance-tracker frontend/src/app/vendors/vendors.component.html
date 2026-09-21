@@ -1,0 +1,336 @@
+<!-- Loading Overlay -->
+<div class="loading-overlay" *ngIf="isLoading">
+  <div class="loading-overlay-inner">
+    <div class="overlay-spinner"></div>
+    <span>Please wait...</span>
+  </div>
+</div>
+
+<main class="main-content">
+
+  <header class="header">
+    <div class="header-content">
+      <h1>Vendors</h1>
+      <p>Manage vendor payments</p>
+    </div>
+    <button class="header-action" (click)="showAddModal = true">
+      + Add Vendor
+    </button>
+  </header>
+
+  <div class="content">
+
+    <!-- Search + Filter -->
+    <div class="filters-section">
+      <input type="text" class="filter-input search-input"
+        placeholder="🔍 Search by vendor name or contact..."
+        [(ngModel)]="searchText" (input)="applyFilters()">
+
+      <select class="filter-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
+        <option value="all">All Vendors</option>
+        <option value="pending">Pending</option>
+        <option value="cleared">Cleared</option>
+      </select>
+
+      <span class="filter-count">
+        {{ filtered.length }} vendor{{ filtered.length !== 1 ? 's' : '' }}
+      </span>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrapper">
+      <table class="vendors-table">
+        <thead>
+          <tr>
+            <th>Vendor Name</th>
+            <th>Contact</th>
+            <th>Address / City</th>
+            <th>Due Date</th>
+            <th>Pending (₹)</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let v of pagedItems" class="table-row">
+            <td>
+              <span class="vendor-name">{{ v.name }}</span>
+            </td>
+            <td>
+              <div class="contact-cell">
+                <span class="contact-phone">{{ v.phoneNumber }}</span>
+                <span class="contact-email">{{ v.email }}</span>
+              </div>
+            </td>
+            <td>{{ v.address }}</td>
+            <td>{{ v.dueDate }}</td>
+            <td>
+              <span class="pending-amount" *ngIf="v.amountPending > 0">
+                ₹{{ v.amountPending.toLocaleString('en-IN') }}
+              </span>
+              <span class="status-cleared" *ngIf="v.amountPending === 0">✓ Cleared</span>
+            </td>
+            <td>
+              <div class="row-actions">
+                <button class="row-btn edit-btn" title="Edit"
+                  (click)="openEditModal(v.vendorId)">✏️ Edit</button>
+                <button class="row-btn pay-btn" title="Mark as paid"
+                  *ngIf="v.amountPending > 0"
+                  (click)="markPaidVendorId = v.vendorId; markPaidVendorName = v.name; showMarkPaidConfirm = true">
+                  ✓ Paid
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Empty row -->
+          <tr *ngIf="!isLoading && filtered.length === 0">
+            <td colspan="7" class="empty-cell">
+              <div class="no-results">
+                <span>🏪</span>
+                <p>No vendors match your search.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="filtered.length > 0">
+      <span class="pagination-info">Page {{ page }} of {{ totalPages }}</span>
+      <div class="pagination-controls">
+        <button class="pagination-btn" [disabled]="page === 1"
+          (click)="page = page - 1">← Prev</button>
+        <button class="pagination-btn" [disabled]="page === totalPages"
+          (click)="page = page + 1">Next →</button>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ══════ Add Modal ══════ -->
+<div class="modal-overlay" [class.active]="showAddModal"
+  (click)="closeAddModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div>
+        <h2 class="modal-title">Add New Vendor</h2>
+        <p class="modal-subtitle">Fill in the vendor details below</p>
+      </div>
+      <button class="modal-close" (click)="closeAddModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-row">
+
+        <!-- Vendor Name -->
+        <div class="form-group">
+          <label class="form-label">Vendor Name *</label>
+          <input type="text" class="form-input"
+            [class.input-error]="aErr.name"
+            placeholder="e.g. Fresh Farms"
+            [(ngModel)]="aName"
+            (input)="clearAddErr('name')">
+          <span class="field-error" *ngIf="aErr.name">{{ aErr.name }}</span>
+        </div>
+
+        <!-- Contact Number -->
+        <div class="form-group">
+          <label class="form-label">Contact Number *</label>
+          <input type="tel" class="form-input"
+            [class.input-error]="aErr.contact"
+            placeholder="+91 98765 43210"
+            [(ngModel)]="aContact"
+            (input)="clearAddErr('contact')">
+          <span class="field-error" *ngIf="aErr.contact">{{ aErr.contact }}</span>
+        </div>
+
+      </div>
+
+      <div class="form-row">
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input type="email" class="form-input"
+            [class.input-error]="aErr.email"
+            placeholder="vendor@email.com"
+            [(ngModel)]="aEmail"
+            (input)="clearAddErr('email')">
+          <span class="field-error" *ngIf="aErr.email">{{ aErr.email }}</span>
+        </div>
+
+        <!-- Address -->
+        <div class="form-group">
+          <label class="form-label">Address / City *</label>
+          <input type="text" class="form-input"
+            [class.input-error]="aErr.city"
+            placeholder="City or full address"
+            [(ngModel)]="aCity"
+            (input)="clearAddErr('city')">
+          <span class="field-error" *ngIf="aErr.city">{{ aErr.city }}</span>
+        </div>
+
+      </div>
+
+      <!-- Due Date -->
+      <div class="form-row d-block">
+        <div class="form-group">
+          <label class="form-label">Due Date *</label>
+          <input type="date" class="form-input"
+            [class.input-error]="aErr.dueDate"
+            [(ngModel)]="aDueDate"
+            (change)="clearAddErr('dueDate')">
+          <span class="field-error" *ngIf="aErr.dueDate">{{ aErr.dueDate }}</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Pending Amount (₹)</label>
+        <input type="number" class="form-input"
+          placeholder="0" [(ngModel)]="aPending">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" rows="3"
+          placeholder="Optional notes..." [(ngModel)]="aNotes"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeAddModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="saveAdd()">Add Vendor</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ Edit Modal ══════ -->
+<div class="modal-overlay" [class.active]="showEditModal"
+  (click)="closeEditModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div>
+        <h2 class="modal-title">Edit Vendor</h2>
+        <p class="modal-subtitle">Update the vendor details below</p>
+      </div>
+      <button class="modal-close" (click)="closeEditModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-row">
+
+        <!-- Vendor Name -->
+        <div class="form-group">
+          <label class="form-label">Vendor Name *</label>
+          <input type="text" class="form-input"
+            [class.input-error]="eErr.name"
+            [(ngModel)]="eName"
+            (input)="clearEditErr('name')">
+          <span class="field-error" *ngIf="eErr.name">{{ eErr.name }}</span>
+        </div>
+
+        <!-- Contact Number -->
+        <div class="form-group">
+          <label class="form-label">Contact Number *</label>
+          <input type="tel" class="form-input"
+            [class.input-error]="eErr.contact"
+            [(ngModel)]="eContact"
+            (input)="clearEditErr('contact')">
+          <span class="field-error" *ngIf="eErr.contact">{{ eErr.contact }}</span>
+        </div>
+
+      </div>
+
+      <div class="form-row">
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input type="email" class="form-input"
+            [class.input-error]="eErr.email"
+            [(ngModel)]="eEmail"
+            (input)="clearEditErr('email')">
+          <span class="field-error" *ngIf="eErr.email">{{ eErr.email }}</span>
+        </div>
+
+        <!-- Address -->
+        <div class="form-group">
+          <label class="form-label">Address / City *</label>
+          <input type="text" class="form-input"
+            [class.input-error]="eErr.city"
+            [(ngModel)]="eCity"
+            (input)="clearEditErr('city')">
+          <span class="field-error" *ngIf="eErr.city">{{ eErr.city }}</span>
+        </div>
+
+      </div>
+
+      <!-- Due Date -->
+      <div class="form-row d-block">
+        <div class="form-group">
+          <label class="form-label">Due Date *</label>
+          <input type="date" class="form-input"
+            [class.input-error]="eErr.dueDate"
+            [(ngModel)]="eDueDate"
+            (change)="clearEditErr('dueDate')">
+          <span class="field-error" *ngIf="eErr.dueDate">{{ eErr.dueDate }}</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Pending Amount (₹)</label>
+        <input type="number" class="form-input" [(ngModel)]="ePending">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" rows="3" [(ngModel)]="eNotes"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-danger" (click)="showConfirm = true; showEditModal = false">
+        🗑 Delete
+      </button>
+      <button class="btn btn-primary" (click)="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ Delete Confirm ══════ -->
+<div class="confirm-overlay" [class.active]="showConfirm">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">Delete Vendor?</div>
+    <p class="confirm-msg">This action cannot be undone.</p>
+    <div class="confirm-btns">
+      <button class="btn btn-secondary" (click)="showConfirm = false">Cancel</button>
+      <button class="btn btn-danger" (click)="doDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ Mark Paid Confirm ══════ -->
+<div class="confirm-overlay" [class.active]="showMarkPaidConfirm">
+  <div class="confirm-box">
+    <div class="confirm-icon">✅</div>
+    <div class="confirm-title">Mark as Paid?</div>
+    <p class="confirm-msg">
+      Mark <strong>{{ markPaidVendorName }}</strong> as fully paid?
+      This will set pending amount to ₹0.
+    </p>
+    <div class="confirm-btns">
+      <button class="btn btn-secondary" (click)="showMarkPaidConfirm = false">Cancel</button>
+      <button class="btn btn-primary" (click)="doMarkPaid()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ Toast ══════ -->
+<div class="toast" [class.show]="toastVisible" [ngClass]="toastType">
+  {{ toastMsg }}
+</div>

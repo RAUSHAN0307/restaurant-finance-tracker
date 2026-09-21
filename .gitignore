@@ -1,0 +1,27 @@
+# Backend
+**/target/
+
+# Frontend / Angular
+**/node_modules/
+**/.angular/
+**/dist/
+
+# Logs / ZIP
+*.log
+*.zip
+
+# Environment / Secrets
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,137 @@
+========================================================
+             UserController API Documentation           
+========================================================
+
+The UserController handles operations related to User profile management and initial system onboarding (registration). It forms the administrative backing for fetching user credentials, creating independent user states, and performing deletions or updates.
+
+Base URL path: /api/users
+
+IMPORTANT:
+Except for the register-owner endpoint, ALL endpoints require a valid JWT `Authorization: Bearer <token>` header containing the User's credentials to execute successfully.
+
+--------------------------------------------------------
+1. Register Owner
+--------------------------------------------------------
+Handles the creation of a brand new Owner User, immediately logs them in, and returns an active JWT token for immediate usage.
+
+  URL: /api/users/register-owner
+  Method: POST
+  Auth Required: NO
+
+Request Body:
+{
+  "username": "newAdmin",
+  "password": "strongPassword",
+  "email": "admin@example.com"
+}
+
+Success Response (200 OK):
+{
+    "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWI.....",
+    "message": "Registration successful and logged in",
+    "user": {
+        "userId": 1,
+        "userName": "newAdmin",
+        "email": "admin@example.com",
+        "password": "$2a$10$hashedPasswordHere",
+        "role": null,
+        "createdAt": "2026-03-06T23:55:00.000000"
+    }
+}
+
+--------------------------------------------------------
+2. Get User by ID
+--------------------------------------------------------
+Fetches a specific user's detailed information payload from the database using their primitive userId.
+
+  URL: /api/users/get/{userId}
+  Method: GET
+  Auth Required: YES
+
+Parameters:
+  userId (Path Variable): The Long identifier of the User.
+
+Success Response (200 OK):
+{
+    "userId": 1,
+    "userName": "newAdmin",
+    "email": "admin@example.com",
+    "password": "$2a$10$hashedPasswordHere",
+    "role": null,
+    "createdAt": "2026-03-06T23:55:00.000000"
+}
+
+--------------------------------------------------------
+3. Create Additional User 
+--------------------------------------------------------
+Creates a new User directly within the database without authenticating them or creating a session token.
+
+  URL: /api/users/add
+  Method: POST
+  Auth Required: YES
+
+Request Body:
+{
+  "userName": "assistantUser",
+  "email": "assistant@example.com",
+  "password": "assistantPassword"
+}
+
+Success Response (200 OK):
+Returns the created user object.
+
+{
+    "userId": 2,
+    "userName": "assistantUser",
+    "email": "assistant@example.com",
+    "password": "$2a$10$hashedPasswordHere",
+    "role": null,
+    "createdAt": "2026-03-06T23:56:12.000000"
+}
+
+--------------------------------------------------------
+4. Update User Profile
+--------------------------------------------------------
+Updates an existing User's information. You only need to provide the fields you wish to change. The service will intelligently detect missing properties and preserve their original mapped DB values.
+
+  URL: /api/users/update/{userId}
+  Method: PUT
+  Auth Required: YES
+
+Parameters:
+  userId (Path Variable): The Long identifier of the User being updated.
+
+Request Body:
+{
+  "email": "updatedAdmin@example.com",
+  "userName": "newAdminName"
+}
+
+Success Response (200 OK):
+Returns the modified User record.
+
+{
+    "userId": 1,
+    "userName": "newAdminName",
+    "email": "updatedAdmin@example.com",
+    "password": "$2a$10$hashedPasswordHere",
+    "role": null,
+    "createdAt": "2026-03-06T23:55:00.000000"
+}
+
+--------------------------------------------------------
+5. Delete User Profile
+--------------------------------------------------------
+Removes a specific user completely from the database using their userId. 
+
+  URL: /api/users/delete/{userId}
+  Method: DELETE
+  Auth Required: YES
+
+Parameters:
+  userId (Path Variable): The Long identifier of the User to remove.
+
+Success Response (200 OK):
+Returns a plaintext success string indicating successful database deletion.
+
+User deleted successfully.

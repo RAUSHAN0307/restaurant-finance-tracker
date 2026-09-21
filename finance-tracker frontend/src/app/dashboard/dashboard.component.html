@@ -1,0 +1,272 @@
+<main class="main-content" (click)="closeNotifications()">
+
+  <header class="header">
+    <div class="header-content">
+      <h1>Dashboard</h1>
+      <p>Overview of your restaurant finances</p>
+    </div>
+    <div class="header-actions">
+      <div class="header-admin">{{ headerRoleLabel }}</div>
+    </div>
+  </header>
+
+  <section class="content">
+
+    <!-- Loading overlay -->
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <span>Loading analytics...</span>
+    </div>
+
+    <!-- Error -->
+    <div class="error-state" *ngIf="apiError && !isLoading">
+      <div>⚠️ {{ apiError }}</div>
+      <button (click)="fetchAnalytics()">Retry</button>
+    </div>
+
+    <!-- ── Metrics, filters, summary — hide until loaded ── -->
+    <div [style.display]="isLoading ? 'none' : 'block'">
+
+      <!-- METRICS SCROLL -->
+      <div class="metrics-wrapper">
+        <div class="metrics-scroll-container">
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-label">Today's Income</span>
+                <div class="metric-icon success">💵</div>
+              </div>
+              <div class="metric-value">{{ metricTodayIncome }}</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-label">Today's Expense</span>
+                <div class="metric-icon danger">💸</div>
+              </div>
+              <div class="metric-value">{{ metricTodayExpense }}</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-label">Monthly Income</span>
+                <div class="metric-icon success">📈</div>
+              </div>
+              <div class="metric-value">{{ metricMonthlyIncome }}</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-label">Monthly Expense</span>
+                <div class="metric-icon danger">📉</div>
+              </div>
+              <div class="metric-value">{{ metricMonthlyExpense }}</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-label">Net Profit</span>
+                <div class="metric-icon success">💹</div>
+              </div>
+              <div class="metric-value"
+                [class.profit-positive]="analyticsData && analyticsData.monthlyNetProfit >= 0"
+                [class.profit-negative]="analyticsData && analyticsData.monthlyNetProfit < 0">
+                {{ metricNetProfit }}
+              </div>
+              <div class="metric-change"
+                [class.positive]="analyticsData && analyticsData.monthlyNetProfit >= 0"
+                [class.negative]="analyticsData && analyticsData.monthlyNetProfit < 0">
+                <span class="metric-arrow">{{ analyticsData && analyticsData.monthlyNetProfit >= 0 ? '↗' : '↘' }}</span>
+                <span>Monthly net</span>
+              </div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-label">Range Income</span>
+                <div class="metric-icon warning">📦</div>
+              </div>
+              <div class="metric-value">{{ metricTotalIncome }}</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-label">Range Expense</span>
+                <div class="metric-icon info">⚠️</div>
+              </div>
+              <div class="metric-value">{{ metricTotalExpense }}</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-label">Yearly Income</span>
+                <div class="metric-icon warning">📆</div>
+              </div>
+              <div class="metric-value">{{ metricYearlyIncome }}</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-label">Yearly Expense</span>
+                <div class="metric-icon info">📊</div>
+              </div>
+              <div class="metric-value">{{ metricYearlyExpense }}</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-label">Range Net Profit</span>
+                <div class="metric-icon success">💰</div>
+              </div>
+              <div class="metric-value"
+                [class.profit-positive]="analyticsData && analyticsData.netProfit >= 0"
+                [class.profit-negative]="analyticsData && analyticsData.netProfit < 0">
+                {{ metricRangeNetProfit }}
+              </div>
+              <div class="metric-change"
+                [class.positive]="analyticsData && analyticsData.netProfit >= 0"
+                [class.negative]="analyticsData && analyticsData.netProfit < 0">
+              </div>
+            </div>
+            <!-- Duplicates for seamless scroll -->
+            <div class="metric-card">
+              <div class="metric-header"><span class="metric-label">Today's Income</span><div class="metric-icon success">💵</div></div>
+              <div class="metric-value">{{ metricTodayIncome }}</div>
+              <div class="metric-change positive"><span class="metric-arrow">↗</span><span>Today's earnings</span></div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header"><span class="metric-label">Today's Expense</span><div class="metric-icon danger">💸</div></div>
+              <div class="metric-value">{{ metricTodayExpense }}</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header"><span class="metric-label">Monthly Income</span><div class="metric-icon success">📈</div></div>
+              <div class="metric-value">{{ metricMonthlyIncome }}</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header"><span class="metric-label">Monthly Expense</span><div class="metric-icon danger">📉</div></div>
+              <div class="metric-value">{{ metricMonthlyExpense }}</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header"><span class="metric-label">Net Profit</span><div class="metric-icon success">💹</div></div>
+              <div class="metric-value">{{ metricNetProfit }}</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header"><span class="metric-label">Yearly Income</span><div class="metric-icon warning">📆</div></div>
+              <div class="metric-value">{{ metricYearlyIncome }}</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header"><span class="metric-label">Yearly Expense</span><div class="metric-icon info">📊</div></div>
+              <div class="metric-value">{{ metricYearlyExpense }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVE FILTER BAR -->
+      <div class="active-filter-bar">
+        Showing:
+        <span class="active-filter-tag">{{ activeFilterTag }}</span>
+        <span class="active-filter-tag" *ngIf="activeSessionTag">{{ activeSessionTag }}</span>
+        <span class="active-filter-tag" *ngIf="activeCategoryTag">{{ activeCategoryTag }}</span>
+        <span class="active-filter-tag" *ngIf="activeDateTag">{{ activeDateTag }}</span>
+        <button class="reset-btn" (click)="resetAllFilters()">↺ Reset Filters</button>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="filters-section">
+        <div class="filter-group">
+          <span class="filter-group-label">Period</span>
+          <button class="filter-btn" [class.active]="isPeriodActive('daily')"          (click)="setPeriod('daily')">Daily</button>
+          <button class="filter-btn" [class.active]="isPeriodActive('weekly')"         (click)="setPeriod('weekly')">Weekly</button>
+          <button class="filter-btn" [class.active]="isPeriodActive('monthly')"        (click)="setPeriod('monthly')">Monthly</button>
+          <button class="filter-btn" [class.active]="isPeriodActive('quarterly')"      (click)="setPeriod('quarterly')">Quarterly</button>
+          <button class="filter-btn" [class.active]="isPeriodActive('financial-year')" (click)="setPeriod('financial-year')">Financial Year</button>
+          <!-- <button class="filter-btn" [class.active]="isPeriodActive('prev-year')"      (click)="setPeriod('prev-year')">Previous Year</button> -->
+        </div>
+        <div class="divider"></div>
+        <!-- <div class="filter-group">
+          <span class="filter-group-label">Session</span>
+          <button class="filter-btn" [class.active]="isSessionActive('all-sessions')" (click)="setSession('all-sessions')">All</button>
+          <button class="filter-btn" [class.active]="isSessionActive('breakfast')"    (click)="setSession('breakfast')">Breakfast</button>
+          <button class="filter-btn" [class.active]="isSessionActive('brunch')"       (click)="setSession('brunch')">Brunch</button>
+          <button class="filter-btn" [class.active]="isSessionActive('lunch')"        (click)="setSession('lunch')">Lunch</button>
+          <button class="filter-btn" [class.active]="isSessionActive('snacks')"       (click)="setSession('snacks')">Snacks</button>
+          <button class="filter-btn" [class.active]="isSessionActive('dinner')"       (click)="setSession('dinner')">Dinner</button>
+        </div> -->
+        <div class="divider"></div>
+        <div class="filter-group">
+          <span class="filter-group-label">Date Range</span>
+          <input type="text" id="dateRangeFilter" class="filter-input"
+            placeholder="Select date range" style="min-width:190px" readonly />
+        </div>
+        <div class="filter-group">
+          <span class="filter-group-label">Category</span>
+          <select class="filter-select" id="categoryFilter" (change)="setCategory($event)">
+            <option value="all">All Categories</option>
+            <optgroup label="Expense">
+              <option value="rent">Rent</option>
+              <option value="utilities">Utilities</option>
+              <option value="raw-materials">Raw Materials</option>
+              <option value="salaries">Salaries</option>
+              <option value="marketing">Marketing</option>
+              <option value="supplies">Supplies</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+
+
+    </div>
+    <!-- end hide-until-loaded -->
+
+    <!-- ══════ CHARTS — always in DOM so @ViewChild works ══════ -->
+    <div class="charts-section" [style.display]="isLoading ? 'none' : 'flex'">
+
+      <div class="chart-row">
+        <div class="chart-card half">
+          <div class="chart-header">
+            <h2 class="chart-title">Income vs Expense</h2>
+            <span class="chart-subtitle">{{ incomeExpenseSubtitle }}</span>
+          </div>
+          <div class="chart-container">
+            <canvas #incomeExpenseCanvas></canvas>
+          </div>
+        </div>
+        <div class="chart-card half">
+          <div class="chart-header">
+            <h2 class="chart-title">Expense Breakdown</h2>
+            <span class="chart-subtitle">{{ expensePieSubtitle }}</span>
+          </div>
+          <div class="no-breakdown"
+            *ngIf="analyticsData && analyticsData.expenseBreakdown.length === 0">
+            <span>📊</span>
+            <p>No expense breakdown for this period.</p>
+          </div>
+          <div class="chart-container"
+            [style.display]="analyticsData && analyticsData.expenseBreakdown.length === 0 ? 'none' : 'block'">
+            <canvas #expensePieCanvas></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card full">
+        <div class="chart-header">
+          <h2 class="chart-title">Profit Trend</h2>
+          <span class="chart-subtitle">{{ profitSubtitle }}</span>
+        </div>
+        <div class="chart-controls">
+          <div class="zoom-hint">
+            <span>🖱 Scroll</span> to zoom &nbsp;·&nbsp;
+            <span>Drag</span> to pan &nbsp;·&nbsp;
+            <span>Click legend</span> to toggle series
+          </div>
+          <button class="zoom-reset-btn" (click)="resetZoom()">↺ Reset Zoom</button>
+        </div>
+        <div class="chart-container large">
+          <canvas #profitCanvas></canvas>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+</main>
+
+<!-- TOAST -->
+<div class="toast"
+  [class.show]="toastVisible"
+  [class.success]="toastType === 'success'"
+  [class.error]="toastType === 'error'">
+  {{ toastMessage }}
+</div>

@@ -1,0 +1,48 @@
+package com.intellect.financeTracker.service;
+
+import com.intellect.financeTracker.dto.DashboardMetricsDTO;
+import com.intellect.financeTracker.repository.ExpenseRepository;
+import com.intellect.financeTracker.repository.IncomeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+
+@Service
+public class DashboardService {
+
+    @Autowired
+    private ExpenseRepository expenseRepository;
+
+    @Autowired
+    private IncomeRepository incomeRepository;
+
+    public DashboardMetricsDTO getMetrics(Long ownerId) {
+
+        LocalDate today = LocalDate.now();
+
+        double todayExpense =
+                expenseRepository.sumByUserAndDate(ownerId, today);
+
+        double todayIncome =
+                incomeRepository.sumByUserAndDate(ownerId, today);
+
+        double monthlyExpense =
+                expenseRepository.sumByUserAndMonth(ownerId);
+
+        double monthlyIncome =
+                incomeRepository.sumByUserAndMonth(ownerId);
+
+        double netProfit = monthlyIncome - monthlyExpense;
+
+        return new DashboardMetricsDTO(
+                todayIncome,
+                todayExpense,
+                monthlyIncome,
+                monthlyExpense,
+                netProfit,
+                0,
+                0
+        );
+    }
+}
